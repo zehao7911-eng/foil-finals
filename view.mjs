@@ -157,6 +157,16 @@ export class Hall{
       this.box(.042,.034,.22,0xe4d6b4,x,.809,-.018,torso);
       for(let i=0;i<3;i++)this.box(.046,.018,.052,0x375365,x,.586+i*.043,-.076,torso);
     }
+    // Seams and padded panels follow the jacket instead of floating over it.
+    for(const side of [-1,1]){
+      this.box(.137,.062,.30,0xd0dbd2,side*.219,.408,0,torso);
+      this.box(.022,.30,.018,0x879e9c,side*.259,.07,.199,torso);
+      this.box(.102,.034,.018,accent,side*.179,-.087,.202,torso);
+    }
+    const maskRim=new T.Mesh(new T.TorusGeometry(.188,.013,5,16),this.mat(0x9caeae));
+    maskRim.scale.y=.92;
+    maskRim.position.set(0,.685,.236);
+    torso.add(maskRim);
     const swordArm=this.group(torso,-.373,.305,.018);
     this.box(.219,.36,.215,white,0,-.137,0,swordArm);
     this.box(.225,.063,.219,accent,0,-.09,0,swordArm);
@@ -169,6 +179,8 @@ export class Hall{
     guard.position.y=-.104;foil.add(guard);
     this.box(.025,1.02,.024,0xa2c2cf,0,-.646,0,foil);
     this.box(.05,.055,.05,0xf3c478,0,-1.17,0,foil);
+    const tip=this.group(foil,0,-1.17,0);
+    this.box(.21,.044,.20,accent,0,-.214,0,elbow);
     const backArm=this.group(torso,.372,.30,0);
     this.box(.19,.48,.21,white,0,-.18,0,backArm);
     this.box(.16,.12,.18,shadow,0,-.43,0,backArm);
@@ -186,7 +198,7 @@ export class Hall{
     });
     const shade=new T.Mesh(new T.CircleGeometry(.48,20),new T.MeshBasicMaterial({color:0x18354a,transparent:true,opacity:.28,depthWrite:false}));
     shade.rotation.x=-Math.PI/2;shade.position.y=.205;this.scene.add(shade);
-    return {root,torso,jacket,swordArm,elbow,backArm,legs,shade,side};
+    return {root,torso,jacket,swordArm,elbow,backArm,legs,shade,side,tip};
   }
   pose(fencer,x,reach,lean,t){
     const {root,torso,swordArm,elbow,backArm,legs,side,shade}=fencer;
@@ -216,18 +228,35 @@ export class Hall{
     });
     const telegraph=phase==='read'||phase==='act';
     const response=phase==='touch'?Math.sin(Math.PI*Math.min(1,elapsed/.74)):0;
-    const threat=telegraph?Math.min(1,elapsed*2.8):0;
+    const threat=phase==='act'?1:telegraph?Math.min(1,elapsed*2.8):0;
+    const incoming=telegraph&&signal===1?threat:0;
     const front=move===0?.92:move===2?-.63:.20;
     this.pose(this.player,-1.63+front*response,move===0?response:.12,.05+response*(move===2?-.23:.16),time);
     this.pose(this.rival,1.63-threat*(signal===2?.35:.12)-response*(outcome<0?.84:.29),.13+threat*(signal===0?.10:.43)+response*.26,.04+threat*.13,time);
     if(telegraph&&signal===0)this.rival.swordArm.rotation.z=-.64*threat;
     else this.rival.swordArm.rotation.z=0;
-    this.player.swordArm.rotation.z=move===1?response*.66:0;
+    if(incoming){
+      this.rival.swordArm.rotation.x-=incoming*.30;
+      this.rival.swordArm.rotation.z=incoming*.26;
+    }
+    this.player.swordArm.rotation.z=move===1?response*.82:0;
+    this.player.elbow.rotation.x-=move===1?response*.43:0;
+    if(move===2)this.player.backArm.rotation.x+=response*.45;
     this.player.jacket.material=this.mat(gold?0xf0cb79:0xe0e7dc);
     this.lamps[0].material=this.mat(outcome>0&&phase==='touch'?0x8ff1ca:0x37556b);
     this.lamps[1].material=this.mat(outcome<0&&phase==='touch'?0xf28971:0x37556b);
-    this.spark.visible=phase==='touch'&&move===1&&outcome>0&&elapsed<.36;
-    this.spark.scale.setScalar(.65+elapsed*2);
+    this.spark.visible=phase==='touch'&&outcome!==0&&elapsed>=.22&&elapsed<.48;
+    if(this.spark.visible){
+      if(move===1&&outcome>0){
+        this.player.tip.getWorldPosition(this.spark.position);
+      }else{
+        const struck=outcome>0?this.rival:this.player;
+        struck.torso.getWorldPosition(this.spark.position);
+        this.spark.position.y+=.16;
+        this.spark.position.z+=.21;
+      }
+    }
+    this.spark.scale.setScalar(.45+(elapsed-.22)*2);
     this.spark.rotation.z=elapsed*4;
     const cameraSway=phase==='ready'?Math.sin(time*.85)*.19:0;
     const close=phase==='done'&&finale?1:0;
