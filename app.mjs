@@ -67,7 +67,7 @@ function playTone(f){
 const round=()=>bouts[state.level];
 const exchange=()=>state.score[0]+state.score[1]-(phase==='touch'?1:0);
 const tell=()=>cue(state.level,Math.max(0,exchange()));
-const responseWindow=()=>state.level===0?1.65:state.level===1?1.30:1.10;
+const responseWindow=()=>state.level===0?Infinity:state.level===1?2.8:2.2;
 function sync(){
   const done=phase==='done', result=winner(state.score);
   el('event').textContent=round().name.toUpperCase();
@@ -75,22 +75,27 @@ function sync(){
   el('you').textContent=state.score[0];
   el('them').textContent=state.score[1];
   el('start').hidden=phase!=='ready';
-  el('start').textContent=state.score.some(Boolean)?'Resume bout →':'En garde →';
+  el('start').textContent=state.score.some(Boolean)?'Resume · 继续 →':'Start bout · 开始 →';
   el('actions').hidden=phase==='ready'||done;
   el('result').hidden=!done;
   el('next').hidden=result!==1||state.level===bouts.length-1;
   el('verdict').textContent=result>0?(state.confetti?'✦ Bout won ✦':'Bout won'):'Opponent wins';
-  buttons.forEach(button=>{button.disabled=phase!=='act';});
-  el('phase').textContent={ready:'ON THE PISTE',read:'WATCH THE BLADE',act:'RESPOND NOW',touch:'REFEREE DECISION',done:'FINAL SCORE'}[phase];
-  const calls={
-    ready:'First to five touches',
-    read:cues[tell()],
-    act:cues[tell()],
-    touch:outcome>0?moves[move]+' scores a touch':move===-1?'Too late · rival touch':'Rival scores a touch',
+  const suggested=tell(), tutorial=state.level===0;
+  const zh=['突刺','格挡','后撤'];
+  const tellText=['对手露出空当','对手挥剑','对手冲上来'];
+  buttons.forEach((button,i)=>{
+    button.disabled=phase!=='act';
+    button.classList.toggle('suggested',tutorial&&phase==='act'&&i===suggested);
+  });
+  el('phase').textContent={ready:'FIRST TO 5',read:'WATCH · 观察',act:tutorial?'TAKE YOUR TIME · 不限时':'RESPOND NOW · 现在出招',touch:outcome>0?'YOU SCORE · 你得分':'RIVAL SCORES · 对手得分',done:'FINAL SCORE'}[phase];
+  el('call').textContent={
+    ready:tutorial?'Training bout · 新手练习':'First to five touches',
+    read:cues[suggested],
+    act:tutorial?'Tap '+moves[suggested]+' · 点'+zh[suggested]:cues[suggested]+' · '+tellText[suggested],
+    touch:outcome>0?moves[move]+' worked · +1':(move===-1?'Too late':'Try '+moves[suggested])+' · 应'+zh[suggested],
     done:result>0?'Victory on the piste':'Set for a rematch'
-  };
-  el('call').textContent=calls[phase];
-  el('hint').textContent=state.level===0&&['read','act'].includes(phase)?'Open guard → Lunge · Incoming blade → Parry · Charge → Retreat':'Read the opponent’s stance. First to five touches wins.';
+  }[phase];
+  el('hint').textContent=phase==='ready'&&tutorial?'先到 5 分获胜。第一场跟着高亮按钮出招，不限时。':phase==='act'&&tutorial?tellText[suggested]:'空当 → 突刺　挥剑 → 格挡　冲锋 → 后撤';
   el('levels').replaceChildren(...bouts.map((bout,i)=>{
     const button=document.createElement('button');
     button.textContent=bout.name+(state.wins[i]?' ✓':'');
@@ -153,15 +158,16 @@ if(hall){
         phase='act';elapsed=0;sync();
       }else if(phase==='act'&&elapsed>=responseWindow()){
         respond(-1);
-      }else if(phase==='touch'&&elapsed>=.78){
+      }else if(phase==='touch'&&elapsed>=1.15){
         phase=winner(state.score)?'done':'read';elapsed=0;
         if(phase==='done')active=false;
         sync();save();
       }
     }
-    el('clock').style.width=phase==='act'?100*Math.max(0,1-elapsed/responseWindow())+'%':'0';
+    el('clock').style.width=phase==='act'&&Number.isFinite(responseWindow())?100*Math.max(0,1-elapsed/responseWindow())+'%':'0';
     hall.draw(round(),phase,tell(),elapsed,move,outcome,now/1000,state.gold,state.confetti&&winner(state.score)>0);
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
 }
+

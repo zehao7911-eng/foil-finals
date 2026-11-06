@@ -23,3 +23,4 @@ canvas{width:100%;height:100%;display:block}
 nav{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}nav button{font-size:11px;padding:4px}.current{color:#82e7d8;border-color:#82e7d8}
 #hint,#rewards{font-size:11px;color:#c1d5e5;margin-top:7px}
 [hidden]{display:none!important}
+#actions button small{display:block;font-size:11px;margin-top:3px}#actions button.suggested{outline:2px solid #ffd991;outline-offset:-2px;background:#523b21;color:#fff3ce}#hint{min-height:2em}#call{font-size:clamp(13px,4vw,20px)}
