@@ -8,12 +8,12 @@ export class Hall{
     this.renderer.toneMapping=T.ACESFilmicToneMapping;
     this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
     this.scene=new T.Scene();
-    this.scene.background=new T.Color(0x243c51);
-    this.scene.fog=new T.Fog(0x263e54,12,29);
+    this.scene.background=new T.Color(0xa9cbd5);
+    this.scene.fog=new T.Fog(0xd3ddcf,15,33);
     this.camera=new T.PerspectiveCamera(39,1,.1,45);
     this.camera.position.set(3.5,4,10.1);
     this.camera.lookAt(0,1.37,0);
-    this.scene.add(new T.HemisphereLight(0xdff5ff,0x62577a,1.12));
+    this.scene.add(new T.HemisphereLight(0xdff5ff,0x827156,1.12));
     const key=new T.DirectionalLight(0xffe4bb,1.8);
     key.position.set(-4,7,4);this.scene.add(key);
     this.rim=new T.DirectionalLight(0x8de9df,1.1);
@@ -51,10 +51,12 @@ export class Hall{
     mesh.position.set(x,y,z);this.scene.add(mesh);
   }
   venue(){
-    this.box(28,.22,25,0x476d85,0,-.14,0);
-    for(let i=-8;i<=8;i++){
-      this.box(.024,.008,20,0x597f92,i,.001,0);
-      this.box(21,.008,.024,0x597f92,0,.001,i);
+    this.box(28,.22,25,0xb88768,0,-.14,0);
+    for(let row=-6;row<=4;row++){
+      for(let col=-7;col<=7;col++){
+        this.box(1.29,.044,.91,[0xc59270,0xd8a881,0xba8162][Math.abs(row*13+col*7)%3],
+          col*1.32+(row%2)*.66,-.017,row*.95);
+      }
     }
     this.box(10,.14,2.58,0x182f48,0,.075,0);
     this.box(9.93,.045,2.19,0x8aa4b0,0,.166,0);
@@ -65,35 +67,53 @@ export class Hall{
     }
     for(const x of [-4.15,-2,0,2,4.15])this.box(.046,.012,2.08,x===0?0xefcf89:0xe5ebde,x,.195,0);
     for(const x of [-4.72,4.72])this.box(.39,.012,2.08,0xb98465,x,.197,0);
-    this.sign('PISTE  01   •   FOIL FINALS',3.2,.29,0,.076,1.316);
-    this.box(26,9,.22,0x2a4964,0,4.5,-8.95);
-    this.sign('INTERNATIONAL FENCING SERIES',8.9,1.24,-3.1,4.5,-8.81);
-    this.box(25,.08,.12,0x5cbab6,0,5.29,-8.78);
-    this.box(25,.20,.38,0x182e46,0,6.4,-7.3);
-    for(let i=-9;i<=9;i++){
-      this.box(.59,.085,.24,0xb7e5df,i*1.2,6.26,-7.22);
-      const flag=this.box(.33,.44,.026,[0x64b7bb,0xe3a867,0xcd7270][(i+9)%3],i*.74,3.58,-4.3);
-      flag.rotation.z=(i%2?.10:-.10);
-    }
-    this.box(14,.025,.035,0xbdd0b6,0,3.81,-4.3);
-    const crowd=new T.InstancedMesh(this.geometry,this.mat(0xffffff),6*30*3);
-    const proxy=new T.Object3D();
-    const tops=[0x57adab,0xd4945c,0xc67671,0x868abd,0x81a886,0x5785a2];
-    const skin=[0xf0c79c,0xa86f59,0xc68e6e,0x7e5648];
-    let index=0;
-    for(let row=0;row<6;row++){
-      const y=.24+row*.39,z=-4.55-row*.63;
-      this.box(23,.43,.66,0x365b73,0,y,z);
-      this.box(23,.029,.055,0x78a0ae,0,y+.22,z+.31);
-      for(let col=0;col<30;col++){
-        const x=(col-14.5)*.68;
-        for(const [w,h,d,offset,color] of [[.40,.37,.30,.39,tops[(col*5+row)%6]],[.265,.25,.257,.68,skin[(col+row*3)%4]],[.277,.071,.263,.82,0x343141]]){
-          proxy.position.set(x,y+offset,z);proxy.scale.set(w,h,d);proxy.updateMatrix();
-          crowd.setMatrixAt(index,proxy.matrix);crowd.setColorAt(index++,new T.Color(color));
+    this.sign('THE FOUNTAIN COURT',3.2,.29,0,.076,1.316);
+    // Open stone arcade with individual voussoirs and a garden beyond.
+    for(let bay=-2;bay<=2;bay++){
+      const x=bay*3.35;
+      for(let i=0;i<=14;i++){
+        const angle=i*Math.PI/14;
+        const stone=this.box(.32,.42,.65,i%2?0xe0c59e:0xd4b18b,
+          x+Math.cos(angle)*1.48,2.72+Math.sin(angle)*1.48,-5.5);
+        stone.rotation.z=angle-Math.PI/2;
+      }
+      if(bay%2===0){
+        this.box(.12,2.7,.12,0x84684d,x,1.35,-7.5);
+        for(let i=0;i<5;i++){
+          const canopy=new T.Mesh(new T.IcosahedronGeometry(.84,1),this.mat([0x58774d,0x78915a,0x426444][i%3]));
+          canopy.scale.set(1-i*.08,1,.85);
+          canopy.position.set(x+Math.sin(i*3)*.47,2.15+i*.32,-7.5+Math.cos(i)*.4);
+          this.scene.add(canopy);
         }
       }
     }
-    this.scene.add(crowd);
+    for(let i=0;i<6;i++){
+      const x=(i-2.5)*3.35;
+      for(let row=0;row<8;row++)this.box(.44,.32,.65,row%2?0xe2c6a3:0xc6a783,x,.25+row*.32,-5.5);
+      this.box(.65,.18,.78,0xf0d6ae,x,2.72,-5.5);
+      this.box(.69,.17,.78,0xc5a17c,x,.12,-5.5);
+    }
+    this.box(24,.95,.55,0xc9a17e,0,.47,-9);
+    this.box(24,.14,.68,0xe6c7a1,0,1,-9);
+    this.box(19,.45,.9,0xd8b491,0,4.46,-5.5);
+    this.box(19,.13,1.03,0xf0d6ad,0,4.73,-5.5);
+    this.box(1.82,.47,1.29,0xd8ba99,0,.26,-4.24);
+    this.box(1.63,.04,1.10,0x539692,0,.51,-4.24);
+    this.box(.24,.65,.24,0xe9d6b7,0,.59,-4.24);
+    this.box(.74,.12,.53,0xe9d6b7,0,.94,-4.24);
+    this.drops=[];
+    for(let i=0;i<12;i++){
+      const bead=this.box(.035,.09,.035,0xc8ffff,0,1,-4.24);
+      this.drops.push(bead);
+    }
+    for(const x of [-5.6,5.6]){
+      this.box(.67,.61,.67,0xb36547,x,.33,-2.55);
+      this.box(.79,.10,.79,0xe29b6c,x,.67,-2.55);
+      for(let i=0;i<11;i++){
+        const leaf=this.box(.12,.47,.13, i%2?0x55794a:0x799151,x+Math.sin(i*2.4)*.31,.85+i%3*.09,-2.55+Math.cos(i*2.4)*.25);
+        leaf.rotation.z=Math.sin(i*2.4)*.58;
+      }
+    }
     this.box(2.12,.72,.68,0x1a3a54,0,.4,-2.8);
     this.box(2.22,.085,.76,0x8bbab8,0,.79,-2.8);
     this.sign('REFEREE',1.28,.27,0,.46,-2.449);
@@ -190,6 +210,10 @@ export class Hall{
   }
   draw(round,phase,signal,elapsed,move,outcome,time,gold,finale){
     this.rim.color.set(round.color);
+    this.drops.forEach((drop,i)=>{
+      const progress=(time*1.2+i/12)%1, angle=i*2.4;
+      drop.position.set(Math.cos(angle)*progress*.68,1.02+.55*progress-1.03*progress*progress,-4.24+Math.sin(angle)*progress*.44);
+    });
     const telegraph=phase==='read'||phase==='act';
     const response=phase==='touch'?Math.sin(Math.PI*Math.min(1,elapsed/.74)):0;
     const threat=telegraph?Math.min(1,elapsed*2.8):0;
@@ -207,7 +231,7 @@ export class Hall{
     this.spark.rotation.z=elapsed*4;
     const cameraSway=phase==='ready'?Math.sin(time*.85)*.19:0;
     const close=phase==='done'&&finale?1:0;
-    this.camera.position.set(3.5+cameraSway-close*.9,4-close*.36,10.1-close*1.1);
+    this.camera.position.set(2.0+cameraSway-close*.8,3.5-close*.30,10.2-close*1.1);
     this.camera.lookAt(-close*.44,1.37,0);
     this.renderer.render(this.scene,this.camera);
   }
