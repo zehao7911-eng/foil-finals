@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101d31"><title>Foil Finals</title><style>*{box-sizing:border-box}
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f4ebd8"><title>Foil Finals</title><style>*{box-sizing:border-box}
 :root{font:15px system-ui,sans-serif;color:#f2f8fd;background:#111e32;color-scheme:dark}
 body{margin:0;min-height:100dvh;background:radial-gradient(ellipse at 50% 8%,#324f68,#111e32 75%)}
 main{width:min(100%,440px);margin:auto;padding:max(10px,env(safe-area-inset-top)) 12px max(10px,env(safe-area-inset-bottom))}
@@ -24,13 +24,42 @@ nav{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}nav 
 #hint,#rewards{font-size:11px;color:#c1d5e5;margin-top:7px}
 [hidden]{display:none!important}
 #actions button small{display:block;font-size:11px;margin-top:3px}#actions button.suggested{outline:2px solid #ffd991;outline-offset:-2px;background:#523b21;color:#fff3ce}#hint{min-height:2em}#call{font-size:clamp(13px,4vw,20px)}
+
+/* Printed tournament program over an open-air court. */
+:root{color:#243a34;background:#f4ebd8;color-scheme:light}
+body{background:repeating-linear-gradient(0deg,#f5eddb 0 3px,#f4ebd8 3px 4px)}
+main{width:min(100%,432px)}
+header{border-block:1px solid #afa185;padding:7px 0;margin-bottom:8px}
+header small{color:#705b42}
+h1{font-family:Georgia,serif;letter-spacing:-.045em;font-weight:700}
+em{color:#965238}
+button{color:#273b34;background:#fff8e8;border-color:#b8a589;border-radius:4px}
+button:focus-visible{outline-color:#315e4e}
+.arena{aspect-ratio:auto;height:clamp(260px,calc(100dvh - 340px),495px);border-radius:5px;border-color:#8c785a;box-shadow:none}
+.top{padding:8px;background:linear-gradient(#20322dcc,transparent);color:white}
+.top small{color:#eef4dc}
+#score{background:#faf2dc;border-color:#beae90;border-radius:3px;color:#35453d}
+#score small{color:#5c5143}
+#score b{color:#245947}#score b:last-of-type{color:#a14636}
+#cue{position:relative;inset:auto;margin-top:6px;background:#24473b;border:0;border-radius:4px;padding:7px 11px 10px;color:#fff7e4}
+#cue small{color:#e4cc99}#cue strong{font-size:clamp(15px,4.5vw,20px)}
+#controls{background:none;border:0;padding:0;margin-top:6px}
+#actions button{border-bottom-width:3px;min-height:62px}
+#actions b{color:#35725e}
+#actions button small{color:#655842;letter-spacing:0;font-weight:500}
+#actions button.suggested{background:#f6dc9f;color:#23392f;outline-color:#6d633a}
+#start,#next{background:#2e5c4b;color:#fff8e8;border-color:#264b3f}
+#result h2{color:#875039}
+nav{border-top:1px solid #c6b79d;padding-top:6px}
+nav button.current{color:#24473b;border-color:#42745f;background:#deebdc}
+#hint,#rewards{color:#5b4d3b}
 </style></head>
-<body><main><header><div><small>INTERNATIONAL FENCING SERIES</small><h1>Foil <em>Finals</em></h1></div><button id="sound" aria-pressed="true">♪ Sound</button></header>
+<body><main><header><div><small>FOUNTAIN COURT / FENCING CLUB</small><h1>Foil <em>Finals</em></h1></div><button id="sound" aria-pressed="true">♪ Sound</button></header>
 <section class="arena" aria-label="3D fencing arena"><canvas></canvas>
 <div class="top"><div><small id="event"></small><strong id="rival"></strong></div><div id="score"><b id="you">0</b><span>–</span><b id="them">0</b><small>YOU / RIVAL</small></div></div>
-<div id="cue" role="status"><small id="phase"></small><strong id="call"></strong><i id="clock"></i></div>
 </section>
-<section id="controls"><button id="start">En garde →</button><div id="actions" hidden><button data-move="0"><b>↗</b>Lunge<small>突刺</small></button><button data-move="1"><b>◇</b>Parry<small>格挡</small></button><button data-move="2"><b>↶</b>Retreat<small>后撤</small></button></div>
+<div id="cue" role="status"><small id="phase"></small><strong id="call"></strong><i id="clock"></i></div>
+<section id="controls"><button id="start">En garde →</button><div id="actions" hidden><button data-move="0"><b>↗</b>Lunge<small>Step back</small></button><button data-move="1"><b>◇</b>Parry<small>Step back</small></button><button data-move="2"><b>↶</b>Retreat<small>Step back</small></button></div>
 <div id="result" hidden><h2 id="verdict"></h2><button id="next">Next opponent →</button><button id="replay">Rematch</button></div></section>
 <nav id="levels" aria-label="Competition rounds"></nav>
 <p id="hint">Read the opponent’s stance. First to five touches wins.</p><p id="rewards" hidden></p>
@@ -395,27 +424,26 @@ function sync(){
   el('you').textContent=state.score[0];
   el('them').textContent=state.score[1];
   el('start').hidden=phase!=='ready';
-  el('start').textContent=state.score.some(Boolean)?'Resume · 继续 →':'Start bout · 开始 →';
+  el('start').textContent=state.score.some(Boolean)?'Resume bout →':'Start bout →';
   el('actions').hidden=phase==='ready'||done;
   el('result').hidden=!done;
   el('next').hidden=result!==1||state.level===bouts.length-1;
   el('verdict').textContent=result>0?(state.confetti?'✦ Bout won ✦':'Bout won'):'Opponent wins';
   const suggested=tell(), tutorial=state.level===0;
-  const zh=['突刺','格挡','后撤'];
-  const tellText=['对手露出空当','对手挥剑','对手冲上来'];
+  const tellText=['Their guard is open.','Their blade is coming.','They are rushing forward.'];
   buttons.forEach((button,i)=>{
     button.disabled=phase!=='act';
     button.classList.toggle('suggested',tutorial&&phase==='act'&&i===suggested);
   });
-  el('phase').textContent={ready:'FIRST TO 5',read:'WATCH · 观察',act:tutorial?'TAKE YOUR TIME · 不限时':'RESPOND NOW · 现在出招',touch:outcome>0?'YOU SCORE · 你得分':'RIVAL SCORES · 对手得分',done:'FINAL SCORE'}[phase];
+  el('phase').textContent={ready:'FIRST TO 5',read:'WATCH THE RIVAL',act:tutorial?'PRACTICE / NO TIMER':'MAKE YOUR MOVE',touch:outcome>0?'POINT FOR YOU':'POINT FOR RIVAL',done:'FINAL SCORE'}[phase];
   el('call').textContent={
-    ready:tutorial?'Training bout · 新手练习':'First to five touches',
+    ready:tutorial?'Follow the highlighted move':'First to five touches',
     read:cues[suggested],
-    act:tutorial?'Tap '+moves[suggested]+' · 点'+zh[suggested]:cues[suggested]+' · '+tellText[suggested],
-    touch:outcome>0?moves[move]+' worked · +1':(move===-1?'Too late':'Try '+moves[suggested])+' · 应'+zh[suggested],
+    act:tutorial?'Tap '+moves[suggested]:cues[suggested],
+    touch:outcome>0?moves[move]+' worked · +1':(move===-1?'Too late. ':'')+'Counter with '+moves[suggested],
     done:result>0?'Victory on the piste':'Set for a rematch'
   }[phase];
-  el('hint').textContent=phase==='ready'&&tutorial?'先到 5 分获胜。第一场跟着高亮按钮出招，不限时。':phase==='act'&&tutorial?tellText[suggested]:'空当 → 突刺　挥剑 → 格挡　冲锋 → 后撤';
+  el('hint').textContent=phase==='ready'&&tutorial?'First to 5 wins. Take your time in the practice bout.':phase==='act'&&tutorial?tellText[suggested]:'Open guard: Lunge · Incoming blade: Parry · Charge: Retreat';
   el('levels').replaceChildren(...bouts.map((bout,i)=>{
     const button=document.createElement('button');
     button.textContent=bout.name+(state.wins[i]?' ✓':'');

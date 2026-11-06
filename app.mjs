@@ -75,27 +75,26 @@ function sync(){
   el('you').textContent=state.score[0];
   el('them').textContent=state.score[1];
   el('start').hidden=phase!=='ready';
-  el('start').textContent=state.score.some(Boolean)?'Resume · 继续 →':'Start bout · 开始 →';
+  el('start').textContent=state.score.some(Boolean)?'Resume bout →':'Start bout →';
   el('actions').hidden=phase==='ready'||done;
   el('result').hidden=!done;
   el('next').hidden=result!==1||state.level===bouts.length-1;
   el('verdict').textContent=result>0?(state.confetti?'✦ Bout won ✦':'Bout won'):'Opponent wins';
   const suggested=tell(), tutorial=state.level===0;
-  const zh=['突刺','格挡','后撤'];
-  const tellText=['对手露出空当','对手挥剑','对手冲上来'];
+  const tellText=['Their guard is open.','Their blade is coming.','They are rushing forward.'];
   buttons.forEach((button,i)=>{
     button.disabled=phase!=='act';
     button.classList.toggle('suggested',tutorial&&phase==='act'&&i===suggested);
   });
-  el('phase').textContent={ready:'FIRST TO 5',read:'WATCH · 观察',act:tutorial?'TAKE YOUR TIME · 不限时':'RESPOND NOW · 现在出招',touch:outcome>0?'YOU SCORE · 你得分':'RIVAL SCORES · 对手得分',done:'FINAL SCORE'}[phase];
+  el('phase').textContent={ready:'FIRST TO 5',read:'WATCH THE RIVAL',act:tutorial?'PRACTICE / NO TIMER':'MAKE YOUR MOVE',touch:outcome>0?'POINT FOR YOU':'POINT FOR RIVAL',done:'FINAL SCORE'}[phase];
   el('call').textContent={
-    ready:tutorial?'Training bout · 新手练习':'First to five touches',
+    ready:tutorial?'Follow the highlighted move':'First to five touches',
     read:cues[suggested],
-    act:tutorial?'Tap '+moves[suggested]+' · 点'+zh[suggested]:cues[suggested]+' · '+tellText[suggested],
-    touch:outcome>0?moves[move]+' worked · +1':(move===-1?'Too late':'Try '+moves[suggested])+' · 应'+zh[suggested],
+    act:tutorial?'Tap '+moves[suggested]:cues[suggested],
+    touch:outcome>0?moves[move]+' worked · +1':(move===-1?'Too late. ':'')+'Counter with '+moves[suggested],
     done:result>0?'Victory on the piste':'Set for a rematch'
   }[phase];
-  el('hint').textContent=phase==='ready'&&tutorial?'先到 5 分获胜。第一场跟着高亮按钮出招，不限时。':phase==='act'&&tutorial?tellText[suggested]:'空当 → 突刺　挥剑 → 格挡　冲锋 → 后撤';
+  el('hint').textContent=phase==='ready'&&tutorial?'First to 5 wins. Take your time in the practice bout.':phase==='act'&&tutorial?tellText[suggested]:'Open guard: Lunge · Incoming blade: Parry · Charge: Retreat';
   el('levels').replaceChildren(...bouts.map((bout,i)=>{
     const button=document.createElement('button');
     button.textContent=bout.name+(state.wins[i]?' ✓':'');
