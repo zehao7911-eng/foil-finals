@@ -343,10 +343,29 @@ class Hall{
     }
     this.spark.scale.setScalar(.45+(elapsed-.22)*2);
     this.spark.rotation.z=elapsed*4;
-    const cameraSway=phase==='ready'?Math.sin(time*.85)*.19:0;
-    const close=phase==='done'&&finale?1:0;
-    this.camera.position.set(2.0+cameraSway-close*.8,3.5-close*.30,10.2-close*1.1);
-    this.camera.lookAt(-close*.44,1.37,0);
+    const sway=phase==='ready'?Math.sin(time*.85)*.19:0;
+    const finaleZoom=phase==='done'&&finale?1:0;
+    const shot=phase==='touch'?Math.sin(Math.PI*Math.min(1,elapsed/.96))**2:0;
+    const attacker=outcome>0?-1:1;
+    let angle=2, height=3.5, distance=10.2, aimX=0, aimY=1.37;
+    if(move===1&&outcome>0){
+      angle-=2.3*shot;
+      height-=.40*shot;
+      distance-=2.1*shot;
+      aimY+=.14*shot;
+    }else if(move===2&&outcome>0){
+      angle+=1.15*shot;
+      height+=.36*shot;
+      distance+=.55*shot;
+      aimX-=.27*shot;
+    }else{
+      angle+=attacker*1.75*shot;
+      height-=.52*shot;
+      distance-=1.7*shot;
+      aimX-=attacker*.24*shot;
+    }
+    this.camera.position.set(angle+sway-finaleZoom*.8,height-finaleZoom*.30,distance-finaleZoom*1.1);
+    this.camera.lookAt(aimX-finaleZoom*.44,aimY,0);
     this.renderer.render(this.scene,this.camera);
   }
 }
